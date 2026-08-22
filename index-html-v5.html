@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STORY//SHARE — 小説投稿サイト</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#0d0e11;color:#eee}
+body{font-family:Arial,"Noto Sans JP",sans-serif}
+#library{min-height:100vh;padding:38px 22px}
+.inner{max-width:1100px;margin:auto}
+h1{font-size:clamp(40px,7vw,78px);letter-spacing:-3px;margin:15px 0}
+.sub{color:#9699a2;line-height:1.9}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0}
+.btn{border:1px solid #3b3e47;background:#17191e;color:#eee;padding:11px 15px;border-radius:8px;cursor:pointer}
+.btn:hover{background:#24272e}
+.btn.primary{background:#eee;color:#111;border-color:#eee}
+.file{display:none}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{position:relative;min-height:230px;padding:21px;border:1px solid #2d3038;border-radius:10px;background:#14161a}
+.badge{font-size:11px;letter-spacing:1px;color:#999}
+.card h2{font-family:"Noto Serif JP","Yu Mincho",serif;font-weight:500;font-size:25px;margin:16px 0 10px}
+.card p{color:#8c8f98;line-height:1.7;font-size:14px}
+.card .actions{position:absolute;left:21px;right:21px;bottom:18px;display:flex;gap:7px}
+.empty{text-align:center;color:#666;padding:90px 20px}
+#reader{display:none;position:fixed;inset:0;background:#000;z-index:20}
+#storyFrame{width:100%;height:100%;border:0;background:#111}
+.readerbar{position:fixed;z-index:30;top:12px;left:12px;display:flex;gap:7px;opacity:.75}
+.readerbar:hover{opacity:1}
+.small{padding:7px 10px;font-size:12px}
+.note{margin-top:12px;color:#777;font-size:12px;line-height:1.8}
+.modal{display:none;position:fixed;inset:0;z-index:50;background:#000b;align-items:center;justify-content:center;padding:20px}
+.modal.open{display:flex}
+.box{width:min(560px,100%);background:#15171c;border:1px solid #373a43;border-radius:12px;padding:24px}
+.input,.textarea{width:100%;border:1px solid #383b44;background:#0e1014;color:#eee;border-radius:7px;padding:11px}
+.textarea{min-height:110px;resize:vertical}
+label{display:block;color:#aaa;font-size:12px;margin:0 0 7px}
+.field{margin-bottom:17px}
+@media(max-width:650px){#library{padding:25px 14px}.list{grid-template-columns:1fr}}
+</style>
+<meta name="story-share-version" content="reader-v1-public">
+
+<style>
+.reader-only-hide{display:none!important}
+</style>
+
+</head>
+<body>
+
+<main id="library">
+<div class="inner">
+  <h1>STORY//SHARE</h1>
+  <div class="sub">
+    完成した小説を添付して公開するための個人小説ライブラリ。<br>
+    <b>HTML小説は本文だけに変換せず、元のHTML・CSS・JavaScriptをそのまま読める形で保存します。</b>
+  </div>
+
+  <div class="toolbar">
+    <button id="loginBtn" class="btn primary" onclick="openLoginModal()">管理者ログイン</button>
+    <button id="logoutBtn" class="btn" onclick="logout()" style="display:none">ログアウト</button>
+    <span id="loginStatus" class="badge" style="display:flex;align-items:center">公開作品を読み込んでいます…</span>
+    <label id="uploadLabel" class="btn primary" style="display:none">
+      ＋ 小説HTMLを投稿
+      <input id="file" class="file" type="file" accept=".html,.htm,.txt,.md">
+    </label>
+    <button id="textPostBtn" class="btn" onclick="openTextModal()" style="display:none">TXT / MDを投稿</button>
+    <button class="btn" onclick="backup()">作品をバックアップ</button>
+    <label class="btn">
+      バックアップを読み込む
+      <input id="backupFile" class="file" type="file" accept=".json">
+    </label>
+  </div>
+
+  <div id="list" class="list"></div>
+  <p class="note">※公開作品はSupabaseから読み込みます。HTML作品を「読む」と元ファイルをiframe内でそのまま実行するため、パスワード入力・ページめくり・エフェクト・フォント変更など、元の作品側のJavaScriptも維持されます。</p>
+</div>
+</main>
+
+<section id="reader">
+  <div class="readerbar">
+    <button class="btn small" onclick="closeReader()">← 作品一覧</button>
+    <button class="btn small" onclick="reloadReader()">↻ 再読み込み</button>
+  </div>
+  <iframe id="storyFrame" sandbox="allow-scripts allow-forms"></iframe>
+</section>
+
+<div id="loginModal" class="modal">
+  <div class="box">
+    <h2 style="font-family:'Noto Serif JP',serif;font-weight:500">管理者ログイン</h2>
+    <p class="sub" style="margin:0 0 18px">投稿・編集・削除は管理者アカウントだけが行えます。読者はログイン不要です。</p>
+    <div class="field"><label>メールアドレス</label><input id="loginEmail" class="input" type="email" autocomplete="username" placeholder="管理者のメールアドレス"></div>
+    <div class="field"><label>パスワード</label><input id="loginPassword" class="input" type="password" autocomplete="current-password" placeholder="パスワード"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeLoginModal()">キャンセル</button>
+      <button id="loginSubmitBtn" class="btn primary" onclick="login()">ログイン</button>
+    </div>
+    <p class="note">※新規登録ボタンはありません。Supabase側で作成した管理者アカウントだけがログインできます。</p>
+  </div>
+</div>
+
+<div id="textModal" class="modal">
+  <div class="box">
+    <h2 style="font-family:'Noto Serif JP',serif;font-weight:500">TXT / MD を投稿</h2>
+    <div class="field"><label>タイトル</label><input id="txtTitle" class="input" placeholder="小説のタイトル"></div>
+    <div class="field"><label>本文</label><textarea id="txtBody" class="textarea" placeholder="ここに本文を貼り付けるか、下のファイルを選択してください"></textarea></div>
+    <div class="field"><label>ファイル（任意）</label><input id="txtFile" type="file" accept=".txt,.md"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeTextModal()">キャンセル</button>
+      <button class="btn primary" onclick="saveTextStory()">投稿する</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://uyszwjthqceemjeosvug.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_yI-YC61djsalRmbozfOndw_wV908snz";
+const { createClient } = supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+
+let stories=[];
+let currentId=null;
+let currentUser=null;
+
+function save(){
+  try{localStorage.setItem("story_share_last_cache",JSON.stringify(stories))}catch(e){}
+}
+function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+
+function updateAuthUI(){
+  const loggedIn=!!currentUser;
+  document.getElementById("loginBtn").style.display=loggedIn?"none":"inline-block";
+  document.getElementById("logoutBtn").style.display=loggedIn?"inline-block":"none";
+  document.getElementById("uploadLabel").style.display=loggedIn?"inline-block":"none";
+  document.getElementById("textPostBtn").style.display=loggedIn?"inline-block":"none";
+  document.getElementById("loginStatus").textContent=loggedIn
+    ?"管理者としてログイン中"
+    :"公開作品を表示中（閲覧はログイン不要）";
+}
+
+function getTitleFromHTML(raw,filename){
+  try{
+    const doc=new DOMParser().parseFromString(raw,"text/html");
+    const t=doc.querySelector("title")?.textContent?.trim();
+    if(t)return t;
+    const h=doc.querySelector("h1")?.textContent?.trim();
+    if(h)return h;
+  }catch(e){}
+  return filename.replace(/\.(html?|txt|md)$/i,"");
+}
+
+function normalizeStory(row){
+  return {
+    ...row,
+    content: row.html_content || "",
+    type: /\.(html?|htm)$/i.test(row.filename || "") ? "html" : "text"
+  };
+}
+
+async function addStory(title,filename,content,type){
+  const {data:authData,error:authError}=await db.auth.getUser();
+  const user=authData?.user||null;
+
+  if(authError || !user){
+    alert("管理者ログインの有効期限が切れています。\nもう一度ログインしてください。");
+    currentUser=null;
+    updateAuthUI();
+    openLoginModal();
+    return;
+  }
+
+  // author_id は stories.author_id の DEFAULT auth.uid() で自動設定します。
+  // INSERTポリシーも auth.uid() と一致する行だけを許可します。
+  const row={
+    title:title||filename,
+    description:"",
+    filename:filename||"",
+    html_content:content,
+    genre:"小説",
+    published:true
+  };
+
+  const {data,error}=await db.from("stories").insert(row).select().single();
+
+  if(error){
+    console.error("Supabase insert error:",error);
+    alert("作品をオンライン保存できませんでした。\n\n"+error.message+"\n\nページを一度再読み込みしてから、もう一度ログインして投稿してください。");
+    return;
+  }
+
+  const story=normalizeStory(data);
+  stories.unshift(story);
+  save();
+  render();
+  openStory(story);
+}
+
+document.getElementById("file").addEventListener("change",async e=>{
+  const file=e.target.files[0]; if(!file)return;
+  try{
+    const raw=await file.text();
+    if(!raw.trim())throw new Error();
+    const title=getTitleFromHTML(raw,file.name);
+    await addStory(title,file.name,raw,"html");
+  }catch(err){alert("HTMLファイルを読み込めませんでした。")}
+  e.target.value="";
+});
+
+document.getElementById("txtFile").addEventListener("change",async e=>{
+  const file=e.target.files[0]; if(!file)return;
+  document.getElementById("txtTitle").value=document.getElementById("txtTitle").value||file.name.replace(/\.(txt|md)$/i,"");
+  document.getElementById("txtBody").value=await file.text();
+});
+
+function render(){
+  const list=document.getElementById("list");
+
+  if(!stories.length){
+    list.innerHTML='<div class="empty">まだ公開小説がありません。<br>管理者は「＋ 小説HTMLを投稿」から作品を追加できます。</div>';
+    return;
+  }
+
+  const mine=s=>currentUser && String(s.author_id)===String(currentUser.id);
+
+  list.innerHTML=stories.map(s=>`
+    <article class="card">
+      <div class="badge">${s.type==="html"?"HTML STORY":"TEXT STORY"} ・ ${esc(s.filename||"")}</div>
+      <h2>${esc(s.title)}</h2>
+      <p>${s.type==="html"?"元のHTML・CSS・JavaScriptを保持しています。":"テキスト小説として表示します。"}</p>
+      <div class="actions">
+        <button class="btn primary" onclick="openById('${s.id}')">読む</button>
+        ${mine(s)?`<button class="btn" onclick="removeStory('${s.id}')">削除</button>`:""}
+      </div>
+    </article>`).join("");
+}
+
+function openById(id){const s=stories.find(x=>String(x.id)===String(id));if(s)openStory(s)}
+function openStory(s){
+  currentId=s.id;
+  const frame=document.getElementById("storyFrame");
+  document.getElementById("library").style.display="none";
+  document.getElementById("reader").style.display="block";
+  if(s.type==="html"){
+    // srcdoc keeps the uploaded HTML's CSS and JS together.
+    frame.srcdoc=s.content;
+  }else{
+    const safe=esc(s.content).replace(/\n/g,"<br>");
+    frame.srcdoc=`<!doctype html><html lang="ja"><meta charset="utf-8"><style>body{margin:0;padding:8vw;background:#f4efe3;color:#202020;font:18px/2 "Noto Serif JP","Yu Mincho",serif;white-space:normal}</style><h1>${esc(s.title)}</h1><div>${safe}</div></html>`;
+  }
+}
+function closeReader(){
+  document.getElementById("storyFrame").srcdoc="";
+  document.getElementById("reader").style.display="none";
+  document.getElementById("library").style.display="block";
+  currentId=null;
+}
+function reloadReader(){
+  const s=stories.find(x=>String(x.id)===String(currentId));
+  if(s)openStory(s);
+}
+async function removeStory(id){
+  const s=stories.find(x=>String(x.id)===String(id));
+  if(!s)return;
+  if(!currentUser || String(s.author_id)!==String(currentUser.id)){
+    alert("この作品を削除できるのは投稿者本人だけです。"); return;
+  }
+  if(!confirm("「"+s.title+"」を削除しますか？"))return;
+  const {error}=await db.from("stories").delete().eq("id",id);
+  if(error){ console.error(error); alert("削除できませんでした。\n"+error.message); return; }
+  stories=stories.filter(x=>String(x.id)!==String(id)); save(); render();
+}
+function openTextModal(){document.getElementById("textModal").classList.add("open")}
+function closeTextModal(){document.getElementById("textModal").classList.remove("open")}
+async function saveTextStory(){
+  const title=document.getElementById("txtTitle").value.trim();
+  const body=document.getElementById("txtBody").value.trim();
+  if(!title||!body){alert("タイトルと本文を入力してください。");return}
+  await addStory(title,title+".txt",body,"text");
+  document.getElementById("txtTitle").value="";
+  document.getElementById("txtBody").value="";
+  closeTextModal();
+}
+function openLoginModal(){
+  document.getElementById("loginModal").classList.add("open");
+  setTimeout(()=>document.getElementById("loginEmail").focus(),50);
+}
+function closeLoginModal(){document.getElementById("loginModal").classList.remove("open")}
+
+async function login(){
+  const email=document.getElementById("loginEmail").value.trim();
+  const password=document.getElementById("loginPassword").value;
+  if(!email||!password){alert("メールアドレスとパスワードを入力してください。");return;}
+  const btn=document.getElementById("loginSubmitBtn");
+  btn.disabled=true; btn.textContent="ログイン中…";
+  const {data,error}=await db.auth.signInWithPassword({email,password});
+  btn.disabled=false; btn.textContent="ログイン";
+  if(error){
+    console.error(error);
+    alert("ログインできませんでした。\nメールアドレスまたはパスワードを確認してください。");
+    return;
+  }
+  currentUser=data.user;
+  closeLoginModal();
+  updateAuthUI();
+  render();
+}
+
+async function logout(){
+  await db.auth.signOut();
+  currentUser=null;
+  updateAuthUI();
+  render();
+}
+
+async function loadStories(){
+  const {data,error}=await db
+    .from("stories")
+    .select("*")
+    .eq("published",true)
+    .order("created_at",{ascending:false});
+
+  if(error){
+    console.error(error);
+    document.getElementById("loginStatus").textContent="作品を読み込めませんでした";
+    document.getElementById("list").innerHTML=
+      '<div class="empty">Supabaseから作品を読み込めませんでした。<br><small>'+esc(error.message)+'</small></div>';
+    return;
+  }
+
+  stories=(data||[]).map(normalizeStory);
+  save();
+  render();
+}
+
+db.auth.onAuthStateChange((_event,session)=>{
+  currentUser=session?.user||null;
+  updateAuthUI();
+  render();
+});
+
+async function initOnline(){
+  const {data}=await db.auth.getSession();
+  currentUser=data.session?.user||null;
+  updateAuthUI();
+  await loadStories();
+}
+
+function backup(){
+  const blob=new Blob([JSON.stringify(stories)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="story-share-backup.json";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+document.getElementById("backupFile").addEventListener("change",async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const data=JSON.parse(await f.text());
+    if(!Array.isArray(data))throw new Error();
+    stories=data.map(normalizeStory);save();render();alert("作品を読み込みました。");
+  }catch(err){alert("バックアップ形式が正しくありません。")}
+  e.target.value="";
+});
+initOnline();
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  ["loginBtn","logoutBtn","uploadLabel","textPostBtn","backupBtn","restoreBtn","adminNote"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("reader-only-hide");
+  });
+});
+</script>
+
+</body>
+</html>
