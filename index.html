@@ -50,7 +50,7 @@ label{display:block;color:#aaa;font-size:12px;margin:0 0 7px}
 
 <main id="library">
 <div class="inner">
-  <h1>STORY//SHARE</h1>
+  <h1>ギミック✕ノベル</h1>
   <div class="sub">
     完成した小説を添付して公開するための個人小説ライブラリ。<br>
     <b>HTML小説は本文だけに変換せず、元のHTML・CSS・JavaScriptをそのまま読める形で保存します。</b>
@@ -363,14 +363,7 @@ document.getElementById("backupFile").addEventListener("change",async e=>{
 initOnline();
 </script>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  ["loginBtn","logoutBtn","uploadLabel","textPostBtn","backupBtn","restoreBtn","adminNote"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add("reader-only-hide");
-  });
-});
-</script>
+
 
 </body>
 </html>
