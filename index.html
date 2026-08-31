@@ -178,14 +178,22 @@ async function addStory(title,filename,content,type){
 
   // author_id は stories.author_id の DEFAULT auth.uid() で自動設定します。
   // INSERTポリシーも auth.uid() と一致する行だけを許可します。
+　// 作者名を取得
+  const authorName =
+   user.user_metadata?.display_name ||
+   user.user_metadata?.name ||
+   user.email?.split("@")[0] ||
+   "作者未設定";
+
   const row={
-    title:title||filename,
-    description:"",
-    filename:filename||"",
-    html_content:content,
-    genre:"小説",
-    published:true
-  };
+   title:title||filename,
+   description:"",
+   filename:filename||"",
+   html_content:content,
+   genre:"小説",
+   published:true,
+   author:authorName
+　};
 
   const {data,error}=await db.from("stories").insert(row).select().single();
 
@@ -230,16 +238,34 @@ function render(){
   const mine=s=>currentUser && String(s.author_id)===String(currentUser.id);
 
   list.innerHTML=stories.map(s=>`
-    <article class="card">
-      <div class="badge">${s.type==="html"?"HTML STORY":"TEXT STORY"} ・ ${esc(s.filename||"")}</div>
-      <h2>${esc(s.title)}</h2>
-      <div class="author">作者：${story.author}</div>
-      <p>${s.type==="html"?"元のHTML・CSS・JavaScriptを保持しています。":"テキスト小説として表示します。"}</p>
-      <div class="actions">
-        <button class="btn primary" onclick="openById('${s.id}')">読む</button>
-        ${mine(s)?`<button class="btn" onclick="removeStory('${s.id}')">削除</button>`:""}
-      </div>
-    </article>`).join("");
+  <article class="card">
+    <div class="badge">
+      ${s.type==="html"?"HTML STORY":"TEXT STORY"} ・ ${esc(s.filename||"")}
+    </div>
+
+    <h2>${esc(s.title)}</h2>
+
+    <div class="author">
+      作者：${esc(s.author || "作者未設定")}
+    </div>
+
+    <p>
+      ${s.type==="html"
+        ?"元のHTML・CSS・JavaScriptを保持しています。"
+        :"テキスト小説として表示します。"}
+    </p>
+
+    <div class="actions">
+      <button class="btn primary" onclick="openById('${s.id}')">
+        読む
+      </button>
+
+      ${mine(s)
+        ?`<button class="btn" onclick="removeStory('${s.id}')">削除</button>`
+        :""}
+    </div>
+  </article>
+`).join("");
 }
 
 function openById(id){const s=stories.find(x=>String(x.id)===String(id));if(s)openStory(s)}
