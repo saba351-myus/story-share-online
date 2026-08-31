@@ -38,6 +38,12 @@ h1{font-size:clamp(40px,7vw,78px);letter-spacing:-3px;margin:15px 0}
 label{display:block;color:#aaa;font-size:12px;margin:0 0 7px}
 .field{margin-bottom:17px}
 @media(max-width:650px){#library{padding:25px 14px}.list{grid-template-columns:1fr}}
+.author {
+  margin: -8px 0 18px;
+  font-size: 14px;
+  color: #8fa0b5;
+  letter-spacing: 0.05em;
+}
 </style>
 <meta name="story-share-version" content="reader-v1-public">
 
@@ -227,6 +233,7 @@ function render(){
     <article class="card">
       <div class="badge">${s.type==="html"?"HTML STORY":"TEXT STORY"} ・ ${esc(s.filename||"")}</div>
       <h2>${esc(s.title)}</h2>
+      <div class="author">作者：${story.author}</div>
       <p>${s.type==="html"?"元のHTML・CSS・JavaScriptを保持しています。":"テキスト小説として表示します。"}</p>
       <div class="actions">
         <button class="btn primary" onclick="openById('${s.id}')">読む</button>
