@@ -11,7 +11,15 @@ html,body{margin:0;min-height:100%;background:#0d0e11;color:#eee}
 body{font-family:Arial,"Noto Sans JP",sans-serif}
 #library{min-height:100vh;padding:38px 22px}
 .inner{max-width:1100px;margin:auto}
-h1{font-size:clamp(40px,7vw,78px);letter-spacing:-3px;margin:15px 0}
+h1{font-family:"Noto Serif JP","Yu Mincho",serif;
+  font-size:clamp(40px,7vw,78px);
+  font-weight:500;
+  letter-spacing:-1px;
+  margin:15px 0;
+  padding:25px 30px;
+  background:#f4efe3;
+  color:#171717;
+  border-radius:10px;}
 .sub{color:#9699a2;line-height:1.9}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0}
 .btn{border:1px solid #3b3e47;background:#17191e;color:#eee;padding:11px 15px;border-radius:8px;cursor:pointer}
@@ -192,7 +200,7 @@ placeholder="パスワード">
 <input id="signupAuthor"
 class="input"
 maxlength="40"
-placeholder="例：闇鯖">
+placeholder="例：〇〇鯖">
 
 <div class="hint">
 この名前が、あなたの投稿作品の「作者」として表示されます。
