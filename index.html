@@ -43,16 +43,23 @@ h1{font-family:"Noto Serif JP","Yu Mincho",serif;
 .readerbar:hover{opacity:1}
 .small{padding:7px 10px;font-size:12px}
 .modal{display:none;position:fixed;inset:0;z-index:50;background:#000b;align-items:center;justify-content:center;padding:20px}
-.modal.open{display:flex}.bottom-image{
+.modal.open{display:flex}
+
+.bottom-image{
+  width:100%;
   text-align:center;
   margin:60px auto 30px;
-  padding:0 20px;}
+  padding:40px 20px;
+  background:#fff; 
+}
+
 .bottom-image img{
-  max-width:100%;
-  width:700px;
+  display:block;
+  width:min(500px,100%);
   height:auto;
-  display:inline-block;
-  border-radius:10px;}
+  margin:0 auto;
+  border-radius:10px;
+}
 .box{width:min(560px,100%);max-height:90vh;overflow:auto;background:#15171c;border:1px solid #373a43;border-radius:12px;padding:24px}
 .input,.textarea{width:100%;border:1px solid #383b44;background:#0e1014;color:#eee;border-radius:7px;padding:11px}
 .textarea{min-height:110px;resize:vertical}
@@ -132,6 +139,11 @@ TXT / MDを投稿
 </p>
 
 </div>
+
+<div class="bottom-image">
+  <img src="bottom-image.jpg" alt="サイト画像">
+</div>
+
 </main>
 
 
@@ -1006,7 +1018,6 @@ return;
 
 }
 
-
 const mine=s=>
 currentUser&&
 String(s.author_id)===
@@ -1177,9 +1188,6 @@ font-weight:500;
 <h1>${esc(s.title)}</h1>
 
 <div>${safe}</div>
-<div class="bottom-image">
-  <img src="bottom-image.jpg" alt="サイト画像">
-</div>
 
 </body>
 
