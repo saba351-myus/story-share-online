@@ -43,7 +43,16 @@ h1{font-family:"Noto Serif JP","Yu Mincho",serif;
 .readerbar:hover{opacity:1}
 .small{padding:7px 10px;font-size:12px}
 .modal{display:none;position:fixed;inset:0;z-index:50;background:#000b;align-items:center;justify-content:center;padding:20px}
-.modal.open{display:flex}
+.modal.open{display:flex}.bottom-image{
+  text-align:center;
+  margin:60px auto 30px;
+  padding:0 20px;}
+.bottom-image img{
+  max-width:100%;
+  width:700px;
+  height:auto;
+  display:inline-block;
+  border-radius:10px;}
 .box{width:min(560px,100%);max-height:90vh;overflow:auto;background:#15171c;border:1px solid #373a43;border-radius:12px;padding:24px}
 .input,.textarea{width:100%;border:1px solid #383b44;background:#0e1014;color:#eee;border-radius:7px;padding:11px}
 .textarea{min-height:110px;resize:vertical}
@@ -51,6 +60,7 @@ label{display:block;color:#aaa;font-size:12px;margin:0 0 7px}
 .field{margin-bottom:17px}
 .hint{font-size:12px;color:#777;line-height:1.7;margin-top:6px}
 .fileName{padding:10px 12px;background:#0e1014;border:1px solid #383b44;border-radius:7px;color:#aaa;font-size:13px}
+  
 @media(max-width:650px){
   #library{padding:25px 14px}
   .list{grid-template-columns:1fr}
@@ -1167,6 +1177,9 @@ font-weight:500;
 <h1>${esc(s.title)}</h1>
 
 <div>${safe}</div>
+<div class="bottom-image">
+  <img src="bottom-image.jpg" alt="サイト画像">
+</div>
 
 </body>
 
