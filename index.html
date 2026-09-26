@@ -72,6 +72,9 @@ label{display:block;color:#aaa;font-size:12px;margin:0 0 7px}
   #library{padding:25px 14px}
   .list{grid-template-columns:1fr}
 }
+
+.about-screen{display:none;min-height:100vh;padding:60px 22px;background:#0d0e11}.about-inner{max-width:900px;margin:0 auto;background:#14161a;border:1px solid #2d3038;border-radius:14px;padding:45px clamp(24px,5vw,60px);animation:aboutFade .35s ease}.about-title{font-family:"Noto Serif JP","Yu Mincho",serif;font-size:clamp(32px,5vw,54px);font-weight:500;text-align:center;margin:0 0 30px;color:#f0f0f0}.about-lead{color:#ddd;font-family:"Noto Serif JP","Yu Mincho",serif;font-size:18px;line-height:2.1;text-align:center;margin:0 auto 42px}.about-section{border-top:1px solid #2d3038;padding:28px 0}.about-section h2{font-family:"Noto Serif JP","Yu Mincho",serif;font-size:22px;font-weight:500;margin:0 0 14px}.about-section p,.about-section li{color:#aaaeb8;line-height:2;font-size:15px}.about-section ul{margin:0;padding-left:1.4em}.about-back{display:block;margin:30px auto 0}@keyframes aboutFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
 </style>
 
 <meta name="story-share-version" content="reader-v2-public-posting">
@@ -129,6 +132,10 @@ TXT / MDを投稿
 <input id="backupFile" class="file" type="file" accept=".json">
 </label>
 
+<button class="btn" onclick="showAbout()">
+ギミック✕ノベルについて
+</button>
+
 </div>
 
 <div id="list" class="list"></div>
@@ -146,6 +153,17 @@ TXT / MDを投稿
 
 </main>
 
+<section id="aboutScreen" class="about-screen">
+  <div class="about-inner">
+    <h1 class="about-title">ギミック✕ノベルについて</h1>
+    <p class="about-lead">完成した小説を添付して公開するための小説ライブラリです。</p>
+    <div class="about-section"><h2>ギミックノベルとは</h2><p>「ギミック✕ノベル」は、紙の小説では再現できないような電子特有の特徴を生かした新しい小説のことです。</p></div>
+    <div class="about-section"><h2>このサイトでできること</h2><ul><li>完成したHTML小説を、そのまま作品として投稿できます。</li><li>HTML・CSS・JavaScript・エフェクトを保持したまま作品を読むことができます。</li><li>TXT / MD形式の小説も投稿できます。</li><li>公開作品はログインせずに読むことができます。</li><li>作者登録をすると、自分の作品を投稿できます。</li></ul></div>
+    <div class="about-section"><h2>普通の小説との違い</h2><p>作品ごとに作られた仕掛けを残したまま公開できることが、このサイトの特徴です。</p></div>
+    <div class="about-section"><h2>作品を読む</h2><p>一覧に表示されている作品は、作品カードの「読む」ボタンから開けます。閲覧だけならログインは必要ありません。</p></div>
+    <button class="btn primary about-back" onclick="showLibrary()">← 小説一覧へ戻る</button>
+  </div>
+</section>
 
 <section id="reader">
 
@@ -1102,6 +1120,24 @@ x=>String(x.id)===String(id)
 
 if(s)openStory(s);
 
+}
+
+
+/* ==============================
+   画面切り替え
+   ============================== */
+
+function showAbout(){
+  document.getElementById("reader").style.display="none";
+  document.getElementById("library").style.display="none";
+  document.getElementById("aboutScreen").style.display="block";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function showLibrary(){
+  document.getElementById("aboutScreen").style.display="none";
+  document.getElementById("library").style.display="block";
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
 
