@@ -1,0 +1,5 @@
+
+User-agent: *
+Allow: /
+
+Sitemap: https://saba351-myus.github.io/story-share-online/sitemap.xml
